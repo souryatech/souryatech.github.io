@@ -1,499 +1,614 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ML Portfolio</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sourya Potti — AI Research</title>
+<meta name="description" content="Sourya Potti — medical imaging, reinforcement learning, and object detection research.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0d12;
+    --bg-panel: #10141b;
+    --bg-panel-2: #141922;
+    --text: #e7eaee;
+    --text-dim: #8b95a1;
+    --text-faint: #5a6371;
+    --accent: #4fd8c4;
+    --accent-warn: #ff6b57;
+    --line: rgba(231,234,238,0.09);
+    --line-strong: rgba(231,234,238,0.18);
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-            color: #e0e0e0;
-            overflow-x: hidden;
-            position: relative;
-        }
+  *{ margin:0; padding:0; box-sizing:border-box; }
 
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
-        }
+  html{ scroll-behavior:smooth; }
 
-        .particle {
-            position: absolute;
-            background: rgba(100, 200, 255, 0.15);
-            border-radius: 50%;
-            animation: float linear infinite;
-        }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
 
-        @keyframes float {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.3;
-            }
-            90% {
-                opacity: 0.3;
-            }
-            100% {
-                transform: translateY(-20vh) rotate(360deg);
-                opacity: 0;
-            }
-        }
+  a{ color:inherit; text-decoration:none; }
 
-        .dna-strand {
-            position: absolute;
-            width: 4px;
-            height: 100px;
-            background: linear-gradient(180deg, rgba(100, 200, 255, 0.2), rgba(255, 100, 150, 0.2));
-            animation: dnaFloat 15s ease-in-out infinite;
-        }
+  ::selection{ background:var(--accent); color:#06110f; }
 
-        @keyframes dnaFloat {
-            0%, 100% {
-                transform: translateX(0) translateY(0) rotate(0deg);
-            }
-            50% {
-                transform: translateX(50px) translateY(-50px) rotate(180deg);
-            }
-        }
+  .noise{
+    position:fixed; inset:0; pointer-events:none; z-index:20;
+    opacity:0.035; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
 
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: rgba(10, 14, 39, 0.95);
-            padding: 1.2rem 2rem;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-        }
+  .grid-overlay{
+    position:fixed; inset:0; pointer-events:none; z-index:20;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    opacity:0.35;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%);
+  }
 
-        nav ul {
-            list-style: none;
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-        }
+  .wrap{ max-width:960px; margin:0 auto; padding:0 28px; position:relative; z-index:2; }
 
-        nav a {
-            color: #e0e0e0;
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-        }
+  /* NAV */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:22px 28px;
+    backdrop-filter:blur(10px);
+    background:linear-gradient(to bottom, rgba(10,13,18,0.85), transparent);
+  }
+  .nav-mark{
+    font-family:var(--mono); font-size:13px; color:var(--accent);
+    display:flex; align-items:center; gap:8px;
+  }
+  .nav-mark .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); animation:pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  .nav-links{ display:flex; gap:28px; font-family:var(--mono); font-size:13px; color:var(--text-dim); }
+  .nav-links a{ transition:color 0.2s; }
+  .nav-links a:hover{ color:var(--text); }
 
-        nav a:hover {
-            color: #64c8ff;
-            background: rgba(100, 200, 255, 0.1);
-            transform: translateY(-2px);
-        }
+  /* HERO */
+  .hero{
+    min-height:100svh; display:flex; flex-direction:column; justify-content:center;
+    position:relative; padding-top:80px;
+  }
 
-        section {
-            min-height: 100vh;
-            padding: 6rem 2rem 2rem;
-            position: relative;
-            z-index: 1;
-        }
+  .hero-frame{ position:relative; display:inline-block; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+  .bbox{
+    position:absolute; border:1.5px solid var(--accent);
+    opacity:0; pointer-events:none;
+  }
+  .bbox::before, .bbox::after{
+    content:''; position:absolute; width:10px; height:10px;
+    border:1.5px solid var(--accent);
+  }
+  .corner-tl{ top:-1.5px; left:-1.5px; border-right:none; border-bottom:none; }
+  .corner-br{ bottom:-1.5px; right:-1.5px; border-left:none; border-top:none; }
 
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #64c8ff, #ff6496);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+  .bbox-label{
+    position:absolute; top:-24px; left:-1.5px;
+    font-family:var(--mono); font-size:11px; letter-spacing:0.02em;
+    color:var(--accent); background:rgba(10,13,18,0.9);
+    padding:2px 6px; white-space:nowrap; opacity:0;
+  }
 
-        h2 {
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
-            color: #64c8ff;
-        }
+  .eyebrow{
+    font-family:var(--mono); font-size:13px; color:var(--accent);
+    letter-spacing:0.06em; margin-bottom:20px; opacity:0;
+  }
+  .eyebrow::before{ content:'// '; color:var(--text-faint); }
 
-        .intro-content {
-            display: flex;
-            align-items: center;
-            gap: 3rem;
-            margin-top: 3rem;
-        }
+  h1{
+    font-family:var(--display); font-weight:600;
+    font-size:clamp(2.6rem, 7vw, 5.2rem);
+    line-height:1.02; letter-spacing:-0.02em;
+    color:var(--text);
+  }
+  h1 .line{ overflow:hidden; display:block; }
+  h1 .line span{ display:block; opacity:0; transform:translateY(110%); }
 
-        .intro-text {
-            flex: 1;
-            font-size: 1.2rem;
-            line-height: 1.8;
-        }
+  .hero-sub{
+    margin-top:28px; max-width:560px;
+    font-size:17px; color:var(--text-dim);
+    opacity:0;
+  }
 
-        .intro-icon {
-            flex: 0 0 300px;
-            text-align: center;
-        }
+  .hero-meta{
+    margin-top:40px; display:flex; gap:32px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:12px; color:var(--text-faint);
+    opacity:0;
+  }
+  .hero-meta div{ display:flex; flex-direction:column; gap:4px; }
+  .hero-meta b{ color:var(--text-dim); font-weight:500; font-size:12.5px; }
 
-        .icon-brain {
-            width: 250px;
-            height: 250px;
-            background: linear-gradient(135deg, rgba(100, 200, 255, 0.2), rgba(255, 100, 150, 0.2));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8rem;
-            animation: pulse 3s ease-in-out infinite;
-            box-shadow: 0 0 40px rgba(100, 200, 255, 0.3);
-        }
+  .scroll-cue{
+    position:absolute; bottom:36px; left:28px;
+    font-family:var(--mono); font-size:11px; color:var(--text-faint);
+    display:flex; align-items:center; gap:10px; opacity:0;
+  }
+  .scroll-cue .bar{ width:1px; height:28px; background:var(--line-strong); position:relative; overflow:hidden; }
+  .scroll-cue .bar::after{
+    content:''; position:absolute; top:-100%; left:0; width:100%; height:100%;
+    background:var(--accent); animation:scrollbar 1.8s ease-in-out infinite;
+  }
+  @keyframes scrollbar{ 0%{top:-100%;} 60%{top:100%;} 100%{top:100%;} }
 
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
+  /* SECTIONS */
+  section{
+    padding:120px 0; position:relative; border-top:1px solid var(--line);
+    background:var(--bg); transform-origin:center top; will-change:transform, opacity;
+    overflow:hidden;
+  }
+  .hero{ border-top:none; }
 
-        .project-card {
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            transition: all 0.4s ease;
-            cursor: pointer;
-            border: 2px solid rgba(100, 200, 255, 0.2);
-            position: relative;
-            overflow: hidden;
-            
-        }
+  /* ambient background shapes — sit behind content, above the solid section bg */
+  .ambient-blob{
+    position:absolute; z-index:-1; border-radius:50%;
+    pointer-events:none; will-change:transform;
+  }
+  .ambient-box{
+    position:absolute; z-index:-1; pointer-events:none;
+    border:1px solid rgba(79,216,196,0.10); will-change:transform;
+  }
+  .ambient-box::before{
+    content:''; position:absolute; top:-1px; left:-1px; width:8px; height:8px;
+    border-top:1px solid rgba(79,216,196,0.22); border-left:1px solid rgba(79,216,196,0.22);
+  }
 
-        .project-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(100, 200, 255, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
+  @keyframes driftA{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(28px,-36px) scale(1.05); }
+  }
+  @keyframes driftB{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(-34px,30px) scale(0.96); }
+  }
+  @keyframes driftRotate{
+    0%,100%{ transform:rotate(-4deg) translateY(0); }
+    50%{ transform:rotate(3deg) translateY(-18px); }
+  }
 
-        .project-card:hover::before {
-            left: 100%;
-        }
+  /* stacking order so later sections paint over earlier pinned ones */
+  section:nth-of-type(1){ z-index:1; }
+  section:nth-of-type(2){ z-index:2; }
+  section:nth-of-type(3){ z-index:3; }
+  section:nth-of-type(4){ z-index:4; }
+  section:nth-of-type(5){ z-index:5; }
 
-        .project-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(100, 200, 255, 0.3);
-            border-color: #64c8ff;
-            background: rgba(26, 31, 58, 0.9);
-        }
+  footer{ position:relative; z-index:6; background:var(--bg); }
 
-        .project-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
+  .section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:56px; }
+  .section-num{ font-family:var(--mono); font-size:13px; color:var(--text-faint); }
+  .section-title{ font-family:var(--display); font-size:clamp(1.5rem, 3vw, 2.1rem); font-weight:600; letter-spacing:-0.01em; }
 
-        .project-title {
-            font-size: 1.5rem;
-            color: #64c8ff;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+  .reveal{ opacity:0; transform:translateY(24px); }
 
-        .project-icon {
-            font-size: 2rem;
-        }
+  /* ABOUT */
+  .about-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:60px; }
+  .about-text p{ color:var(--text-dim); margin-bottom:18px; font-size:15.5px; }
+  .about-text strong{ color:var(--text); font-weight:500; }
 
-        .project-details {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease;
-        }
+  .credential-list{ display:flex; flex-direction:column; gap:0; }
+  .credential{
+    padding:16px 0; border-bottom:1px solid var(--line);
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .credential:first-child{ padding-top:0; }
+  .credential .k{ font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:0.04em; }
+  .credential .v{ font-size:14px; color:var(--text-dim); }
 
-        .project-card:hover .project-details {
-            max-height: 300px;
-        }
+  /* PROJECTS */
+  .case{
+    position:relative; border:1px solid var(--line);
+    padding:32px; margin-bottom:20px;
+    transition:border-color 0.35s ease, background 0.35s ease;
+  }
+  .case:hover{ border-color:var(--line-strong); background:var(--bg-panel); }
 
-        .project-description {
-            margin: 1.5rem 0;
-            line-height: 1.6;
-            color: #b0b0b0;
-        }
+  .case-corner{ position:absolute; width:14px; height:14px; opacity:0; transition:opacity 0.3s ease; }
+  .case-corner::before, .case-corner::after{ content:''; position:absolute; background:var(--accent); }
+  .case-corner::before{ width:100%; height:1.5px; top:0; }
+  .case-corner::after{ width:1.5px; height:100%; left:0; }
+  .cc-tl{ top:-1px; left:-1px; }
+  .cc-br{ bottom:-1px; right:-1px; transform:rotate(180deg); }
+  .case:hover .case-corner{ opacity:1; }
 
-        .project-links {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
+  .case-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:14px; flex-wrap:wrap; }
+  .case-tag{
+    font-family:var(--mono); font-size:11px; padding:4px 9px;
+    border:1px solid var(--line-strong); color:var(--accent);
+    letter-spacing:0.03em; white-space:nowrap;
+  }
+  .case-tag.status-active{ color:var(--accent-warn); border-color:rgba(255,107,87,0.3); }
 
-        .btn {
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #64c8ff, #4a9fd8);
-            color: white;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            cursor: pointer;
-            display: inline-block;
-        }
+  .case-title{ font-family:var(--display); font-size:19px; font-weight:600; letter-spacing:-0.005em; }
+  .case-desc{ color:var(--text-dim); font-size:14.5px; margin-top:10px; max-width:640px; }
+  .case-links{ display:flex; gap:20px; margin-top:18px; font-family:var(--mono); font-size:12px; }
+  .case-links a{ color:var(--text-dim); border-bottom:1px solid var(--line-strong); padding-bottom:2px; transition:color 0.2s, border-color 0.2s; }
+  .case-links a:hover{ color:var(--accent); border-color:var(--accent); }
 
-        .btn:hover {
-            background: linear-gradient(135deg, #7dd4ff, #64c8ff);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(100, 200, 255, 0.4);
-        }
+  /* NOW */
+  .now-strip{ display:flex; gap:14px; align-items:flex-start; }
+  .now-dot{ width:8px; height:8px; border-radius:50%; background:var(--accent-warn); margin-top:7px; flex-shrink:0; box-shadow:0 0 10px rgba(255,107,87,0.5); }
+  .now-strip p{ color:var(--text-dim); font-size:15px; }
+  .now-strip strong{ color:var(--text); font-weight:500; }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, #ff6496, #d84a7a);
-        }
+  /* CONTACT */
+  .contact-title{ font-family:var(--display); font-size:clamp(2rem, 5vw, 3.4rem); font-weight:600; letter-spacing:-0.02em; max-width:640px; }
+  .contact-links{ margin-top:44px; display:flex; flex-direction:column; gap:0; max-width:520px; }
+  .contact-link{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:20px 0; border-bottom:1px solid var(--line);
+    font-family:var(--mono); font-size:14px; color:var(--text-dim);
+    transition:color 0.2s, padding-left 0.25s;
+  }
+  .contact-link:hover{ color:var(--accent); padding-left:8px; }
+  .contact-link .arrow{ opacity:0; transform:translateX(-6px); transition:all 0.25s; }
+  .contact-link:hover .arrow{ opacity:1; transform:translateX(0); }
 
-        .btn-secondary:hover {
-            background: linear-gradient(135deg, #ff7da6, #ff6496);
-            box-shadow: 0 5px 20px rgba(255, 100, 150, 0.4);
-        }
+  footer{
+    padding:36px 0 48px; font-family:var(--mono); font-size:11.5px; color:var(--text-faint);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
 
-        .contact-content {
-            text-align: center;
-            padding: 3rem;
-        }
+  @media (max-width:720px){
+    .about-grid{ grid-template-columns:1fr; gap:36px; }
+    .hero-meta{ gap:22px; }
+    .nav-links{ display:none; }
+    section{ padding:80px 0; }
+  }
 
-        .contact-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 3rem;
-            flex-wrap: wrap;
-        }
-
-        .contact-item {
-            background: rgba(26, 31, 58, 0.7);
-            padding: 2rem 3rem;
-            border-radius: 15px;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(100, 200, 255, 0.2);
-        }
-
-        .contact-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(100, 200, 255, 0.3);
-            border-color: #64c8ff;
-        }
-
-        .contact-item a {
-            color: #64c8ff;
-            text-decoration: none;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .contact-icon {
-            font-size: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .intro-content {
-                flex-direction: column;
-            }
-
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            nav ul {
-                gap: 1rem;
-            }
-
-            .project-links {
-                flex-direction: column;
-            }
-        }
-    </style>
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
 </head>
 <body>
-    <div class="bg-animation" id="bgAnimation"></div>
 
-    <nav>
-        <ul>
-            <li><a href="#about">About</a></li>
-            <li><a href="#projects">Projects</a></li>
-            <li><a href="#contact">Contact</a></li>
-        </ul>
-    </nav>
+<div class="noise"></div>
+<div class="grid-overlay"></div>
 
-    <section id="about">
-        <div class="container">
-            <h1>Sourya Potti</h1>
-            <div class="intro-content">
-                <div class="intro-text">
-                    <p>I'm passionate about applying machine learning to medical imaging and healthcare challenges. My work focuses on developing intelligent systems for medical image analysis, particularly in abnormality and tumor detection.</p>
-                    <p style="margin-top: 1.5rem;">My research explores text-guided object detection architectures for identifying abnormalities in chest X-rays, combining computer vision with natural language processing to enhance diagnostic capabilities. I'm driven by the potential of AI to assist healthcare professionals and improve patient outcomes.</p>
-                </div>
-                <div class="intro-icon">
-                    <div class="icon-brain">🧠</div>
-                </div>
-            </div>
+<nav>
+  <div class="nav-mark"><span class="dot"></span>SP — AI RESEARCH</div>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#research">Research</a>
+    <a href="#now">Now</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="ambient-blob" style="top:-160px; right:-120px; width:520px; height:520px;
+      background:radial-gradient(circle, rgba(79,216,196,0.16) 0%, rgba(79,216,196,0) 70%);
+      animation:driftA 24s ease-in-out infinite;"></div>
+    <div class="ambient-blob" style="bottom:-200px; left:-140px; width:460px; height:460px;
+      background:radial-gradient(circle, rgba(255,107,87,0.10) 0%, rgba(255,107,87,0) 70%);
+      animation:driftB 28s ease-in-out infinite;"></div>
+    <div class="ambient-box" style="top:14%; left:6%; width:220px; height:150px;
+      animation:driftRotate 20s ease-in-out infinite;"></div>
+
+    <div class="hero-frame">
+      <div class="eyebrow" id="eyebrow">Sourya Potti / researcher</div>
+      <h1>
+        <span class="line"><span>Detecting what</span></span>
+        <span class="line"><span>matters in medical</span></span>
+        <span class="line"><span>imaging.</span></span>
+      </h1>
+      <div class="bbox" id="heroBox">
+        <div class="corner-tl"></div>
+        <div class="corner-br"></div>
+        <div class="bbox-label" id="bboxLabel">class: researcher — conf 0.00</div>
+      </div>
+    </div>
+
+    <p class="hero-sub" id="heroSub">
+      Incoming AI major at UC San Diego's Jacobs School of Engineering. I build detection and reinforcement-learning
+      systems for chest X-ray, endoscopy, and video understanding — work that's been published, presented, and run
+      inside real labs before I've started my first semester.
+    </p>
+
+    <div class="hero-meta" id="heroMeta">
+      <div><b>UC San Diego</b>Jacobs School of Engineering, AI · Class of 2030</div>
+      <div><b>MIT Lincoln Laboratory</b>Beaverworks / Medlytics — medical AI</div>
+      <div><b>UCSF</b>AI Research Day presenter</div>
+      <div><b>1st-author</b>Chest X-ray abnormality localization, AJSR</div>
+    </div>
+
+    <div class="scroll-cue"><div class="bar"></div>scroll</div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="ambient-blob" style="top:-100px; right:-160px; width:480px; height:480px;
+      background:radial-gradient(circle, rgba(79,216,196,0.12) 0%, rgba(79,216,196,0) 70%);
+      animation:driftA 26s ease-in-out infinite;"></div>
+    <div class="section-head">
+      <span class="section-num">01</span>
+      <h2 class="section-title">About</h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>
+          I work at the intersection of <strong>computer vision, reinforcement learning, and clinical imaging</strong> —
+          mostly asking how models can localize disease, not just classify it. My first-author work built a
+          text-guided region-region similarity architecture for chest X-ray abnormality detection, done in
+          collaboration with Oxford-affiliated researchers and published in AJSR.
+        </p>
+        <p>
+          At MIT Lincoln Laboratory's Beaverworks Summer Institute (Medlytics), I worked on zero-shot brain tumor
+          detection. I've since presented at UCSF AI Research Day and continue building research ties there.
+        </p>
+        <p>
+          Outside the lab: a black belt in Wushu Sanshou under the International Wushu Sanshou Dao Association,
+          AP Scholar with Distinction, and time spent mentoring and tutoring other students in AI.
+        </p>
+      </div>
+      <div class="credential-list reveal">
+        <div class="credential">
+          <span class="k">EDUCATION</span>
+          <span class="v">UC San Diego, Jacobs School of Engineering — B.S. Artificial Intelligence, Class of 2030</span>
         </div>
-    </section>
-
-    <section id="projects">
-        <div class="container">
-            <h2>Projects</h2>
-
-            <div class="project-card", style="background-image: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('poster.png'); background-size: cover; background-position: center; color: white;">
-
-                <div class="project-header">
-                    <div class="project-title">
-                        <span class="project-icon">🔬</span>
-                        <span>Region-Region Similarity Based Text-Guided Abnormality Detection in Chest X-Rays</span>
-                    </div>
-                </div>
-                <div class="project-details">
-                    <p class="project-description">
-                        Research investigating region-region similarity based text-guided object detection architecture for abnormality detection in chest X-ray imaging. This work explores a novel approach to combining textual descriptions with visual features to improve chest disease diagnostic accuracy.
-                    </p>
-                    <div class="project-links">
-                        <a href="https://github.com/souryatech/TGCRFA-CXR.git" class="btn">GitHub Repository</a>
-                        <a href="https://www.doi.org/10.70251/HYJR2348.362839" class="btn btn-secondary">Research Paper</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-header">
-                    <div class="project-title">
-                        <span class="project-icon">🧬</span>
-                        <span>Zero-Shot Brain Tumor Detection System</span>
-                    </div>
-                </div>
-                <div class="project-details">
-                    <p class="project-description">
-                        Developed during the Beaver Works Summer Institute as a team project. Created a deep learning zero-shot object detection model for detecting and classifying brain tumor types including Meningioma and Glioma from medical imaging data.
-                    </p>
-                    <div class="project-links">
-                        <a href="https://github.com/souryatech/zero-shot-brain-tumor-detection.git" class="btn">GitHub Repository</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="project-card">
-                <div class="project-header">
-                    <div class="project-title">
-                        <span class="project-icon">😷</span>
-                        <span>Face Mask Detection System</span>
-                    </div>
-                </div>
-                <div class="project-details">
-                    <p class="project-description">
-                        Computer vision application that detects whether individuals are wearing face masks. Demonstrates practical application of machine learning for public health and safety monitoring.
-                    </p>
-                    <div class="project-links">
-                        <a href="https://github.com/souryatech/face-mask-detection.git" class="btn">GitHub Repository</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="project-card" style=background-image: url("images/4");>
-                <div class="project-header">
-                    <div class="project-title">
-                        <span class="project-icon">🍅</span>
-                        <span>Tomato Leaf Disease Classifier</span>
-                    </div>
-                </div>
-                <div class="project-details">
-                    <p class="project-description">
-                        Agricultural AI system for identifying diseases in tomato plants through leaf image analysis. Showcases machine learning's versatility in addressing real-world problems across different domains.
-                    </p>
-                    <div class="project-links">
-                        <a href="https://github.com/souryatech/tomato-leaf-disease.git" class="btn">GitHub Repository</a>
-                    </div>
-                </div>
-            </div>
+        <div class="credential">
+          <span class="k">PUBLICATION</span>
+          <span class="v">1st author, chest X-ray abnormality localization (text-guided region-region similarity), AJSR</span>
         </div>
-    </section>
-
-    <section id="contact">
-        <div class="container">
-            <div class="contact-content">
-                <h2>Get in Touch</h2>
-                <p style="font-size: 1.2rem; margin-bottom: 2rem;">Feel free to reach out for collaborations or discussions about machine learning and medical imaging.</p>
-                <div class="contact-links">
-                    <div class="contact-item">
-                        <a href="mailto:sourya.tech.8@gmail.com">
-                            <span class="contact-icon">📧</span>
-                            <span>sourya.tech.8@gmail.com</span>
-                        </a>
-                    </div>
-                    <div class="contact-item">
-                        <a href="https://github.com/souryatech" target="_blank">
-                            <span class="contact-icon">💻</span>
-                            <span>GitHub Profile</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
+        <div class="credential">
+          <span class="k">RESEARCH ROLE</span>
+          <span class="v">MIT Lincoln Laboratory — Beaverworks / Medlytics, medical AI</span>
         </div>
-    </section>
+        <div class="credential">
+          <span class="k">AFFILIATION</span>
+          <span class="v">UCSF — AI Research Day presenter, ongoing research collaboration</span>
+        </div>
+        <div class="credential">
+          <span class="k">OUTSIDE THE LAB</span>
+          <span class="v">Black Belt, Wushu Sanshou (IWUSDA) · AP Scholar with Distinction</span>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <script>
-        // Background animation
-        const bgAnimation = document.getElementById('bgAnimation');
-        
-        // Create particles
-        for (let i = 0; i < 15; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.width = Math.random() * 60 + 20 + 'px';
-            particle.style.height = particle.style.width;
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDuration = Math.random() * 15 + 10 + 's';
-            particle.style.animationDelay = Math.random() * 5 + 's';
-            bgAnimation.appendChild(particle);
+  <!-- RESEARCH -->
+  <section id="research">
+    <div class="ambient-blob" style="top:120px; left:-140px; width:440px; height:440px;
+      background:radial-gradient(circle, rgba(255,107,87,0.09) 0%, rgba(255,107,87,0) 70%);
+      animation:driftB 30s ease-in-out infinite;"></div>
+    <div class="ambient-blob" style="bottom:80px; right:-160px; width:500px; height:500px;
+      background:radial-gradient(circle, rgba(79,216,196,0.10) 0%, rgba(79,216,196,0) 70%);
+      animation:driftA 25s ease-in-out infinite;"></div>
+    <div class="ambient-box" style="bottom:8%; left:10%; width:180px; height:120px;
+      animation:driftRotate 22s ease-in-out infinite;"></div>
+    <div class="section-head">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Research &amp; Projects</h2>
+    </div>
+
+    <div class="case reveal">
+      <span class="case-corner cc-tl"></span><span class="case-corner cc-br"></span>
+      <div class="case-top">
+        <span class="case-title">UlcerDetRL</span>
+        <span class="case-tag status-active">active</span>
+      </div>
+      <p class="case-desc">
+        Using MedGemma as a reinforcement-learning reward signal to train a YOLO-based object detector for
+        endoscopic polyp detection. Originally scoped for ulcer detection; pivoted to polyps after annotation
+        limitations in HyperKvasir. Supports multi-box detection per frame.
+      </p>
+      <div class="case-links">
+        <a href="https://github.com/souryatech/UlcerDetRL" target="_blank" rel="noopener">github.com/souryatech/UlcerDetRL →</a>
+      </div>
+    </div>
+
+    <div class="case reveal">
+      <span class="case-corner cc-tl"></span><span class="case-corner cc-br"></span>
+      <div class="case-top">
+        <span class="case-title">Text-Guided Chest X-Ray Abnormality Detection</span>
+        <span class="case-tag">published — AJSR</span>
+      </div>
+      <p class="case-desc">
+        Region-region similarity based text-guided object detection for abnormality localization in chest
+        radiographs, combining textual descriptions with visual features to improve diagnostic accuracy.
+      </p>
+      <div class="case-links">
+        <a href="https://github.com/souryatech/TGCRFA-CXR" target="_blank" rel="noopener">github repo →</a>
+        <a href="https://www.doi.org/10.70251/HYJR2348.362839" target="_blank" rel="noopener">read the paper →</a>
+      </div>
+    </div>
+
+    <div class="case reveal">
+      <span class="case-corner cc-tl"></span><span class="case-corner cc-br"></span>
+      <div class="case-top">
+        <span class="case-title">Zero-Shot Brain Tumor Detection</span>
+        <span class="case-tag">MIT Beaverworks</span>
+      </div>
+      <p class="case-desc">
+        Team project at the Beaverworks Summer Institute — a zero-shot detection model for classifying tumor
+        types, including meningioma and glioma, from MRI imaging.
+      </p>
+      <div class="case-links">
+        <a href="https://github.com/souryatech/zero-shot-brain-tumor-detection" target="_blank" rel="noopener">github repo →</a>
+      </div>
+    </div>
+
+    <div class="case reveal">
+      <span class="case-corner cc-tl"></span><span class="case-corner cc-br"></span>
+      <div class="case-top">
+        <span class="case-title">Face Mask Detection</span>
+        <span class="case-tag">computer vision</span>
+      </div>
+      <p class="case-desc">
+        A CV pipeline detecting mask compliance from images — an early exercise in applying detection models
+        to public health monitoring.
+      </p>
+      <div class="case-links">
+        <a href="https://github.com/souryatech/face-mask-detection" target="_blank" rel="noopener">github repo →</a>
+      </div>
+    </div>
+
+    <div class="case reveal">
+      <span class="case-corner cc-tl"></span><span class="case-corner cc-br"></span>
+      <div class="case-top">
+        <span class="case-title">Tomato Leaf Disease Classifier</span>
+        <span class="case-tag">agri ML</span>
+      </div>
+      <p class="case-desc">
+        Image classification for identifying disease in tomato plants from leaf photos — applying the same
+        detection instincts outside medicine.
+      </p>
+      <div class="case-links">
+        <a href="https://github.com/souryatech/tomato-leaf-disease" target="_blank" rel="noopener">github repo →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- NOW -->
+  <section id="now">
+    <div class="ambient-blob" style="top:-60px; right:-100px; width:340px; height:340px;
+      background:radial-gradient(circle, rgba(255,107,87,0.12) 0%, rgba(255,107,87,0) 70%);
+      animation:driftB 20s ease-in-out infinite;"></div>
+    <div class="section-head">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Currently</h2>
+    </div>
+    <div class="now-strip reveal">
+      <span class="now-dot"></span>
+      <p>
+        <strong>Building UlcerDetRL's multi-box detection pipeline</strong> and exploring V-JEPA's latent
+        prediction error as a free supervisory signal for label-efficient temporal action segmentation —
+        alongside continued conversations with UCSF researchers on future collaboration.
+      </p>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="ambient-blob" style="bottom:-140px; right:-120px; width:480px; height:480px;
+      background:radial-gradient(circle, rgba(79,216,196,0.14) 0%, rgba(79,216,196,0) 70%);
+      animation:driftA 27s ease-in-out infinite;"></div>
+    <div class="ambient-box" style="top:12%; right:14%; width:200px; height:140px;
+      animation:driftRotate 24s ease-in-out infinite;"></div>
+    <div class="section-head">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Get in touch</h2>
+    </div>
+    <p class="contact-title reveal">
+      Open to research collaborations in medical imaging, RL, and detection.
+    </p>
+    <div class="contact-links reveal">
+      <a class="contact-link" href="mailto:sourya.tech.8@gmail.com">
+        <span>sourya.tech.8@gmail.com</span><span class="arrow">↗</span>
+      </a>
+      <a class="contact-link" href="https://github.com/souryatech" target="_blank" rel="noopener">
+        <span>github.com/souryatech</span><span class="arrow">↗</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Sourya Potti</span>
+    <span>built with intent, not templates</span>
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if(!reduced){
+    // Hero load sequence
+    const tl = gsap.timeline({ defaults:{ ease:'power3.out' } });
+
+    tl.to('#eyebrow', { opacity:1, duration:0.5 })
+      .to('h1 .line span', { y:'0%', opacity:1, duration:0.9, stagger:0.12 }, '-=0.2');
+
+    // Position + animate bounding box around the h1 text
+    function sizeHeroBox(){
+      const h1 = document.querySelector('.hero-frame h1');
+      const box = document.getElementById('heroBox');
+      const label = document.getElementById('bboxLabel');
+      const rect = h1.getBoundingClientRect();
+      const parentRect = document.querySelector('.hero-frame').getBoundingClientRect();
+      const pad = 14;
+      box.style.left = (rect.left - parentRect.left - pad) + 'px';
+      box.style.top = (rect.top - parentRect.top - pad) + 'px';
+      box.style.width = (rect.width + pad*2) + 'px';
+      box.style.height = (rect.height + pad*2) + 'px';
+    }
+    sizeHeroBox();
+    window.addEventListener('resize', sizeHeroBox);
+
+    tl.to('#heroBox', { opacity:1, duration:0.4 }, '-=0.3')
+      .to('#bboxLabel', { opacity:1, duration:0.3 }, '-=0.2')
+      .to({ conf:0 }, {
+          conf: 98, duration:1.1, ease:'power1.out',
+          onUpdate: function(){
+            const v = this.targets()[0].conf;
+            document.getElementById('bboxLabel').textContent = 'class: researcher — conf ' + (v/100).toFixed(2);
+          }
+        }, '-=0.1')
+      .to('#heroSub', { opacity:1, duration:0.7 }, '-=0.6')
+      .to('#heroMeta', { opacity:1, duration:0.7 }, '-=0.4')
+      .to('.scroll-cue', { opacity:1, duration:0.5 }, '-=0.3');
+
+    // Scroll reveals
+    gsap.utils.toArray('.reveal').forEach((el) => {
+      gsap.to(el, {
+        opacity:1, y:0, duration:0.8, ease:'power2.out',
+        scrollTrigger: { trigger: el, start:'top 88%', once:true }
+      });
+    });
+
+    // Apple-style curtain transitions: each section stays pinned in place
+    // while the next one scrolls up and over it, then releases.
+    const panels = gsap.utils.toArray('section');
+    panels.forEach((panel, i) => {
+      const next = panels[i + 1];
+      if (!next) return;
+
+      ScrollTrigger.create({
+        trigger: next,
+        start: 'top bottom',
+        end: 'top top',
+        scrub: true,
+        pin: panel,
+        pinSpacing: false,
+      });
+
+      // the outgoing panel recedes slightly as it gets covered
+      gsap.fromTo(panel,
+        { scale:1, opacity:1 },
+        {
+          scale:0.94, opacity:0.45, ease:'none',
+          scrollTrigger: { trigger: next, start:'top bottom', end:'top top', scrub:true }
         }
+      );
+    });
+  } else {
+    document.querySelectorAll('.eyebrow, h1 .line span, .hero-sub, .hero-meta, .scroll-cue, .reveal, #heroBox, #bboxLabel')
+      .forEach(el => { el.style.opacity = 1; el.style.transform = 'none'; });
+    document.getElementById('bboxLabel').textContent = 'class: researcher — conf 0.98';
+  }
+</script>
 
-        // Create DNA strands
-        for (let i = 0; i < 8; i++) {
-            const dna = document.createElement('div');
-            dna.className = 'dna-strand';
-            dna.style.left = Math.random() * 100 + '%';
-            dna.style.top = Math.random() * 100 + '%';
-            dna.style.animationDelay = Math.random() * 10 + 's';
-            bgAnimation.appendChild(dna);
-        }
-
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            });
-        });
-    </script>
 </body>
 </html>
